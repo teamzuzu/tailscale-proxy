@@ -68,7 +68,7 @@ spec:
               name: tsauthkey
               optional: false
         - name: TS_HOSTNAME
-          value: rackz
+          value: tailscale-proxy
         image: tailscale/tailscale:latest
         imagePullPolicy: IfNotPresent
         name: tailscale
