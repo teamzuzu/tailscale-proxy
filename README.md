@@ -1,6 +1,6 @@
 # tailscale-proxy
 
-a simple k8s deployment showing a simple approach to connecting your cluster to your headscale tailnet without having to use the operator
+a k8s deployment showing a simple approach to connecting your cluster to your headscale tailnet without having to use the operator
 
 to deploy you need to update
 
