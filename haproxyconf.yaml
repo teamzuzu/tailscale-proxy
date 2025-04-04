@@ -28,15 +28,15 @@ data:
       stats    enable
       stats uri /
 
-    listen elasticsearch
+    listen opensearch
       bind :9200
       mode tcp
-      server zopensearch zopensearch.opensearch:9200 check
+      server opensearch opensearch.opensearch:9200 check
 
     listen opensearch-dashboards
       bind :5601
       mode tcp
-      server zopensearch-dashboards zopensearch-dashboards.opensearch:5601 check
+      server opensearch-dashboards opensearch-dashboards.opensearch:5601 check
 kind: ConfigMap
 metadata:
   name: haproxyconf
