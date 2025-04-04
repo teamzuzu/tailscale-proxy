@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tailscale-proxy
+  labels:
+    app: tailscale-proxy
+spec:
+  progressDeadlineSeconds: 2
+  replicas: 1
+  revisionHistoryLimit: 5
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: tailscale-proxy
+  template:
+    metadata:
+      labels:
+        app: tailscale-proxy
+    spec:
+      containers:
+      - args:
+        - -d
+        - -f
+        - /bitnami/haproxy/conf/haproxy.cfg
+        command:
+        - /opt/bitnami/haproxy/sbin/haproxy
+        image: bitnami/haproxy:latest
+        imagePullPolicy: IfNotPresent
+        name: haproxy
+        ports:
+        - containerPort: 80
+          name: haproxy-http
+          protocol: TCP
+        - containerPort: 9000
+          name: stats
+          protocol: TCP
+        - containerPort: 443
+          name: haproxy-https
+          protocol: TCP
+        - containerPort: 9200
+          name: opensearch
+          protocol: TCP
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities: {}
+          privileged: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /bitnami/haproxy/conf/haproxy.cfg
+          name: haproxy
+          subPath: haproxy.cfg
+      - env:
+        - name: TS_EXTRA_ARGS
+          value: ' --login-server=https://yourheadscale.server --reset --accept-dns=false'
+        - name: TS_KUBE_SECRET
+        - name: TS_STATE_DIR
+          value: /etc/tailscale
+        - name: TS_AUTH_ONCE
+          value: "true"
+        - name: TS_AUTHKEY
+          valueFrom:
+            secretKeyRef:
+              key: TS_AUTHKEY
+              name: tsauthkey
+              optional: false
+        - name: TS_HOSTNAME
+          value: rackz
+        image: tailscale/tailscale:latest
+        imagePullPolicy: IfNotPresent
+        name: tailscale
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - NET_ADMIN
+          privileged: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: false
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/tailscale
+          name: tsstate
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 2
+      volumes:
+      - name: tsstate
+        persistentVolumeClaim:
+          claimName: tsstate
+      - configMap:
+          defaultMode: 420
+          name: haproxyconf
+        name: haproxy

@@ -1,0 +1,42 @@
+apiVersion: v1
+data:
+  haproxy.cfg: |
+    global
+      maxconn 4000
+      daemon
+      tune.ssl.default-dh-param 2048
+      tune.ssl.cachesize 1000000
+
+    defaults
+      retries 3
+      log   global
+      mode  http
+      timeout    connect 3s
+      timeout    client  30s
+      timeout    server  30s
+      timeout check   2s
+      timeout http-request 5s
+      timeout http-keep-alive 15s
+      option  redispatch
+      option    dontlognull
+      backlog 10000
+      compression algo gzip
+
+    # haproxy stats
+    listen stats
+      bind :9000
+      stats    enable
+      stats uri /
+
+    listen elasticsearch
+      bind :9200
+      mode tcp
+      server zopensearch zopensearch.opensearch:9200 check
+
+    listen opensearch-dashboards
+      bind :5601
+      mode tcp
+      server zopensearch-dashboards zopensearch-dashboards.opensearch:5601 check
+kind: ConfigMap
+metadata:
+  name: haproxyconf
